@@ -41,7 +41,7 @@ A basic example to show how it works:
 Run the following command:
 
 ```zsh
-mailwindi -i input.html -o output.html
+mailwindi -i input.html
 ```
 
 And will generate the following inlined HTML file:
@@ -77,7 +77,7 @@ Design your email template in plain HTML & [WindiCSS utility classes](https://wi
 Then run the following command to generate the same email template but with all styles inlined.
 
 ```zsh
-mailwind -i input.html -o output.html
+mailwind -i input.html
 ```
 
 ## 🔧 Options
