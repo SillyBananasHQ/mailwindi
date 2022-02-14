@@ -24,6 +24,9 @@
     "tailwindcss",
     "windicss"
   ],
+  "bin": {
+    "mailwindi": "./dist/index.js"
+  },
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
