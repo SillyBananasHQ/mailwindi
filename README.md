@@ -84,16 +84,19 @@ mailwind -i input.html
 
 `--input`: Input file path
 
+- Alias: `-i`
 - Default: `index.html`
 - Optional: `true`
 
 `--minify`: Output file path
 
+- Alias: `-m`
 - Default: `[NAME]-inline.html`
 - Optional: `true`
 
-`-c`: Config file path
+`--config`: Config file path
 
+- Alias: `-c`
 - Default: `./windi.config.js`
 - Optional: `true`
 
