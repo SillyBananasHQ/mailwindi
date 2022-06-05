@@ -1,16 +1,13 @@
 #!/usr/bin/env node
 
-import juice from "juice";
 import yargs from "yargs";
 import { bundleRequire } from "bundle-require";
 import { defineConfig } from "windicss/helpers";
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync } from "node:fs";
 import { hideBin } from "yargs/helpers";
-import { HTMLParser } from "windicss/utils/parser";
-import { join } from "path/posix";
-import { minify as minifyHtml } from "html-minifier";
-import { parse } from "path";
-import { Processor } from "windicss/lib";
+import { join, parse } from "node:path";
+
+import { generateHtml } from "~/generate";
 
 (async () => {
   const {
@@ -18,11 +15,13 @@ import { Processor } from "windicss/lib";
     input,
     minify,
   } = await yargs(hideBin(process.argv))
+    .version()
+    .help()
     .option("input", {
       alias: "i",
-      type: "string",
       description: "Path to the input HTML file",
-      default: join(process.cwd(), "index.html"),
+      requiresArg: true,
+      type: "string",
     })
     .option("minify", {
       alias: "m",
@@ -39,49 +38,31 @@ import { Processor } from "windicss/lib";
     .parse();
 
   try {
-    let config: ReturnType<typeof defineConfig>;
+    if (!input) throw "No or invalid input file path provided";
+
+    let config = defineConfig({
+      darkMode: "media",
+    });
+
     if (existsSync(configPath)) {
       const { mod } = await bundleRequire({
         filepath: configPath,
       });
 
       config = mod.default ?? mod.config;
-    } else {
-      config = defineConfig({
-        darkMode: "media",
-      });
     }
 
-    const html = readFileSync(join(process.cwd(), input), "utf-8");
-    const processor = new Processor(config);
-    const preflightSheet = processor.preflight(html);
-
-    const htmlClasses = new HTMLParser(html)
-      .parseClasses()
-      .map(({ result }) => result)
-      .join(" ");
-
-    const { styleSheet: interpretedSheet } = processor.interpret(htmlClasses);
-    const styles = interpretedSheet.extend(preflightSheet, false).build(minify);
-
-    const juicedHtml = juice.inlineContent(html, styles);
-
     const { ext: inputExt, name: inputName, dir: inputDir } = parse(input);
+    const outputPath = join(inputDir, `${inputName}-inline${inputExt}`);
 
-    writeFileSync(
-      join(process.cwd(), inputDir, `${inputName}-inline${inputExt}`),
-      minify
-        ? minifyHtml(juicedHtml, {
-            collapseBooleanAttributes: true,
-            collapseWhitespace: true,
-            minifyJS: true,
-            removeComments: true,
-            removeEmptyAttributes: true,
-            removeOptionalTags: true,
-            useShortDoctype: true,
-          })
-        : juicedHtml
-    );
+    await generateHtml({
+      config,
+      inputPath: input as string,
+      minify,
+      outputPath,
+    });
+
+    console.log(`\n✅ Successfully generated: ${outputPath}`);
   } catch (error) {
     console.error(error);
     process.exit(1);
